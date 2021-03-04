@@ -110,16 +110,14 @@ def KNN(df, k=17, verbose=True):
     return accuracy
 
 #Finds optimal k for KNN
-def find_optimal_k(KNN, df):
+def find_optimal_k(KNN, df, max_k=100):
 
     acc_list = []
-    for k in range(1,100):
-        acc_list.append(KNN(df, k=k, verbose=False))
+    for k in range(1,max_k):
+        acc_list.append(float(KNN(df, k=k, verbose=False)))
     
     optimal_k = acc_list.index(max(acc_list))+1
-    optimal_acc = max(acc_list)
-    #print('Optimal k:', optimal_k)
-    #print('Optimal acc:', optimal_acc)
+    print('Optimal k:', optimal_k)
 
     return optimal_k
 
@@ -127,26 +125,14 @@ console = Console()
 
 with console.status('[bold green]Preprocessing data...') as status:
     time.sleep(1)
-    df = pd.read_csv('winequality-red.csv', sep=';')
+    file_name = 'winequality-white.csv'
+    print('Data set:',file_name)
+    df = pd.read_csv(file_name, sep=';')
     df.columns = [x.strip().replace(' ','_') for x in df.columns]
-    # print(df)
-    #print(df.describe())
-    #sns.boxplot(x=df['fixed_acidity'])
-    
-    # plt.scatter(df['residual_sugar'], df['chlorides'])
-    # plt.xlabel('Residual sugar')
-    # plt.ylabel('Chlorides')
-    # plt.xlim(0, 20)
-    # plt.ylim(-10,10)
-    # plt.show()
 
     #Preprocess data set for naive bayes, normalization not needed
     df_nb = preprocess(copy.deepcopy(df), rm_dup=True, rm_out=True, norm=False)
     df_knn = preprocess(copy.deepcopy(df), rm_dup=True, rm_out=True, norm=True)
-    #print(df_knn.describe())
-    #print('df_nb', df_nb['quality'].describe())
-    #print('df_knn',df_knn['quality'].describe())
-
 
 with console.status('[bold green]Running Naive Bayes...') as status:
     time.sleep(1)
@@ -156,8 +142,8 @@ with console.status('[bold green]Running Naive Bayes...') as status:
     print("Naive bayes took:", round(nb_end - nb_start,2),"seconds.")
 
 k = 0
-with console.status('[bold green]Finding optimal k...') as status:
-    k = find_optimal_k(KNN, df_knn)
+with console.status('[bold green]Calculating optimal k...') as status:
+    k = find_optimal_k(KNN, df_knn, max_k=100)
 
 with console.status('[bold green]Running KNN...') as status:
     time.sleep(1)
