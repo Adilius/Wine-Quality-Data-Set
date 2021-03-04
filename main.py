@@ -64,11 +64,15 @@ def naive_bayes(df):
 
     #Calculate accuracy
     accuracy = str(metrics.accuracy_score(y_test, y_pred))[:5]
-    print('Accuracy NB:' , accuracy)
+    print('Accuracy KNN:' , accuracy)
+
+    #Calculate recall
+    recall = str(metrics.recall_score(y_test, y_pred, average='weighted'))[:5]
+    print('Recall KNN:' , recall)
 
     #Calculate F1-score
-    nb_f1_score = str(metrics.f1_score(y_test, y_pred, average='weighted'))[:5]
-    print('F1-score NB:' , nb_f1_score)
+    knn_f1_score = str(metrics.f1_score(y_test, y_pred, average='weighted'))[:5]
+    print('F1-score KNN:' , knn_f1_score)
 
 #Run KNN on dataframe
 def KNN(df, k=17, verbose=True):
@@ -102,6 +106,11 @@ def KNN(df, k=17, verbose=True):
     if verbose:
         print('Accuracy KNN:' , accuracy)
 
+    #Calculate recall
+    recall = str(metrics.recall_score(y_test, y_pred, average='weighted'))[:5]
+    if verbose:
+        print('Recall KNN:' , recall)
+
     #Calculate F1-score
     knn_f1_score = str(metrics.f1_score(y_test, y_pred, average='weighted'))[:5]
     if verbose:
@@ -125,7 +134,7 @@ console = Console()
 
 with console.status('[bold green]Preprocessing data...') as status:
     time.sleep(1)
-    file_name = 'winequality-white.csv'
+    file_name = 'winequality-red.csv'
     print('Data set:',file_name)
     df = pd.read_csv(file_name, sep=';')
     df.columns = [x.strip().replace(' ','_') for x in df.columns]
