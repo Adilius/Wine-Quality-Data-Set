@@ -1,10 +1,10 @@
 import pandas as pd
 import numpy as np
-import seaborn as sns #Visualization
+import seaborn as sns #Visualization boxplot
 from scipy import stats
 from rich.console import Console
 import time
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt #Plot tool
 import copy #For deep copy
 
 from sklearn.model_selection import train_test_split  # Naive bayes
@@ -63,10 +63,15 @@ def naive_bayes(df):
     print(cm)
 
     #Calculate accuracy
-    print('Accuracy NB:' , metrics.accuracy_score(y_test, y_pred))
+    accuracy = str(metrics.accuracy_score(y_test, y_pred))[:5]
+    print('Accuracy NB:' , accuracy)
+
+    #Calculate F1-score
+    nb_f1_score = str(metrics.f1_score(y_test, y_pred, average='weighted'))[:5]
+    print('F1-score NB:' , nb_f1_score)
 
 #Run KNN on dataframe
-def KNN(df):
+def KNN(df, k=17, verbose=True):
 
     #Split into features and label
     x = df.iloc[:, :-1]
@@ -76,7 +81,7 @@ def KNN(df):
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=TEST_SIZE, random_state=RANDOM_STATE)
 
     #Create KNN-model
-    knn_model = KNeighborsClassifier(n_neighbors=5, weights='distance', algorithm='kd_tree')
+    knn_model = KNeighborsClassifier(n_neighbors=k, weights='distance', algorithm='brute')
 
     #Train model
     knn_model.fit(x_train, y_train.values.ravel())
@@ -88,12 +93,35 @@ def KNN(df):
     cm = metrics.confusion_matrix(y_test, y_pred)
 
     #Print confusion matrix
-    print('Confusion matrix KNN:')
-    print(cm)
+    if verbose:
+        print('Confusion matrix KNN:')
+        print(cm)
 
     #Calculate accuracy
-    print('Accuracy KNN:' , metrics.accuracy_score(y_test, y_pred))
+    accuracy = str(metrics.accuracy_score(y_test, y_pred))[:5]
+    if verbose:
+        print('Accuracy KNN:' , accuracy)
 
+    #Calculate F1-score
+    knn_f1_score = str(metrics.f1_score(y_test, y_pred, average='weighted'))[:5]
+    if verbose:
+        print('F1-score KNN:' , knn_f1_score)
+
+    return accuracy
+
+#Finds optimal k for KNN
+def find_optimal_k(KNN, df):
+
+    acc_list = []
+    for k in range(1,100):
+        acc_list.append(KNN(df, k=k, verbose=False))
+    
+    optimal_k = acc_list.index(max(acc_list))+1
+    optimal_acc = max(acc_list)
+    #print('Optimal k:', optimal_k)
+    #print('Optimal acc:', optimal_acc)
+
+    return optimal_k
 
 console = Console()
 
@@ -127,10 +155,13 @@ with console.status('[bold green]Running Naive Bayes...') as status:
     nb_end = time.time()
     print("Naive bayes took:", round(nb_end - nb_start,2),"seconds.")
 
+k = 0
+with console.status('[bold green]Finding optimal k...') as status:
+    k = find_optimal_k(KNN, df_knn)
 
 with console.status('[bold green]Running KNN...') as status:
     time.sleep(1)
     knn_start = time.time()
-    KNN(df_knn)
+    KNN(df_knn, k=k)
     knn_end = time.time()
     print("KNN took:", round(knn_end - knn_start,2),"seconds.")
