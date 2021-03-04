@@ -76,7 +76,7 @@ def KNN(df):
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=TEST_SIZE, random_state=RANDOM_STATE)
 
     #Create KNN-model
-    knn_model = KNeighborsClassifier(n_neighbors=5)
+    knn_model = KNeighborsClassifier(n_neighbors=5, weights='distance', algorithm='kd_tree')
 
     #Train model
     knn_model.fit(x_train, y_train.values.ravel())
@@ -102,29 +102,35 @@ with console.status('[bold green]Preprocessing data...') as status:
     df = pd.read_csv('winequality-red.csv', sep=';')
     df.columns = [x.strip().replace(' ','_') for x in df.columns]
     # print(df)
-    print(df.describe())
+    #print(df.describe())
     #sns.boxplot(x=df['fixed_acidity'])
     
-    plt.scatter(df['residual_sugar'], df['chlorides'])
-    plt.xlim(0, 20)
-    plt.ylim(-10,10)
-    plt.show()
+    # plt.scatter(df['residual_sugar'], df['chlorides'])
+    # plt.xlabel('Residual sugar')
+    # plt.ylabel('Chlorides')
+    # plt.xlim(0, 20)
+    # plt.ylim(-10,10)
+    # plt.show()
 
     #Preprocess data set for naive bayes, normalization not needed
-    df_nb = preprocess(copy.deepcopy(df), rm_dup=True, rm_out=False, norm=False)
+    df_nb = preprocess(copy.deepcopy(df), rm_dup=True, rm_out=True, norm=False)
     df_knn = preprocess(copy.deepcopy(df), rm_dup=True, rm_out=True, norm=True)
-    plt.scatter(df_knn['residual_sugar'], df_knn['chlorides'])
-    plt.show()
-    print(df_knn.describe())
+    #print(df_knn.describe())
     #print('df_nb', df_nb['quality'].describe())
     #print('df_knn',df_knn['quality'].describe())
 
 
 with console.status('[bold green]Running Naive Bayes...') as status:
     time.sleep(1)
+    nb_start = time.time()
     naive_bayes(df_nb)
+    nb_end = time.time()
+    print("Naive bayes took:", round(nb_end - nb_start,2),"seconds.")
 
 
 with console.status('[bold green]Running KNN...') as status:
     time.sleep(1)
+    knn_start = time.time()
     KNN(df_knn)
+    knn_end = time.time()
+    print("KNN took:", round(knn_end - knn_start,2),"seconds.")
