@@ -17,7 +17,7 @@ TEST_SIZE = 0.20
 RANDOM_STATE = 40
 
 #Preprocessing
-def preprocess(df, rm_dup, rm_out, norm):
+def preprocess(df, rm_dup=False, rm_out=False, norm=False, binary=False):
 
     #Data reduction
     """" Removes duplicate rows """
@@ -30,9 +30,15 @@ def preprocess(df, rm_dup, rm_out, norm):
         df = df[(np.abs(stats.zscore(df)) < 3).all(axis=1)]
 
     #Data transformation
-    """ Normalizes each column into a range between 0 and 1 """
+    """ Normalizes each feature into a range between 0 and 1 """
     if(norm == True):
         df.iloc[:, :-1] = df.iloc[:, :-1].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
+
+    """ Transformes all 1-5 quality to 0, and 6-10 quality to 1 """
+    if(binary == True):
+        print(df.head)
+        df.iloc[:, -1:] = (df.iloc[:, -1:] > 5).astype(int)
+        print(df.head)
 
     return df
 
@@ -64,15 +70,15 @@ def naive_bayes(df):
 
     #Calculate accuracy
     accuracy = str(metrics.accuracy_score(y_test, y_pred))[:5]
-    print('Accuracy KNN:' , accuracy)
+    print('Accuracy NB:' , accuracy)
 
     #Calculate recall
     recall = str(metrics.recall_score(y_test, y_pred, average='weighted'))[:5]
-    print('Recall KNN:' , recall)
+    print('Recall NB:' , recall)
 
     #Calculate F1-score
-    knn_f1_score = str(metrics.f1_score(y_test, y_pred, average='weighted'))[:5]
-    print('F1-score KNN:' , knn_f1_score)
+    nb_f1_score = str(metrics.f1_score(y_test, y_pred, average='weighted'))[:5]
+    print('F1-score NB:' , nb_f1_score)
 
 #Run KNN on dataframe
 def KNN(df, k=17, verbose=True):
@@ -127,6 +133,10 @@ def find_optimal_k(KNN, df, max_k=100):
     
     optimal_k = acc_list.index(max(acc_list))+1
     print('Optimal k:', optimal_k)
+    plt.plot(range(1,max_k), acc_list)
+    plt.xlabel('k')
+    plt.ylabel('Accuracy')
+    plt.show()
 
     return optimal_k
 
@@ -140,8 +150,8 @@ with console.status('[bold green]Preprocessing data...') as status:
     df.columns = [x.strip().replace(' ','_') for x in df.columns]
 
     #Preprocess data set for naive bayes, normalization not needed
-    df_nb = preprocess(copy.deepcopy(df), rm_dup=True, rm_out=True, norm=False)
-    df_knn = preprocess(copy.deepcopy(df), rm_dup=True, rm_out=True, norm=True)
+    df_nb = preprocess(copy.deepcopy(df), rm_dup=False, rm_out=True, norm=False, binary=False)
+    df_knn = preprocess(copy.deepcopy(df), rm_dup=False, rm_out=True, norm=True, binary=False)
 
 with console.status('[bold green]Running Naive Bayes...') as status:
     time.sleep(1)
@@ -152,7 +162,7 @@ with console.status('[bold green]Running Naive Bayes...') as status:
 
 k = 0
 with console.status('[bold green]Calculating optimal k...') as status:
-    k = find_optimal_k(KNN, df_knn, max_k=100)
+    k = find_optimal_k(KNN, df_knn, max_k=200)
 
 with console.status('[bold green]Running KNN...') as status:
     time.sleep(1)
